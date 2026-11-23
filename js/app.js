@@ -2,7 +2,11 @@
 class App {
     constructor() {
         this.registerServiceWorker();
+        // Initialize Database and UI
+        window.db = new Database();
+        window.ui = new UI();
         console.log('✅ MyFitTracker v1.0.0 Initialized');
+        console.log('🗄️ Database ready, UI loaded');
     }
 
     registerServiceWorker() {

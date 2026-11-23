@@ -194,5 +194,6 @@ class Database {
     }
 }
 
-// Global Database Instance
-const db = new Database();
+// Global Database Instance - Initialized in App.js
+// Keep this for type reference only
+let db;

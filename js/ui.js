@@ -12,15 +12,29 @@ class UI {
     }
 
     setupEventListeners() {
+        // Event delegation - works on dynamically created elements
         document.addEventListener('click', (e) => {
-            const target = e.target.closest('button, [data-action]');
+            // Check buttons first
+            let target = e.target.closest('button');
+            
+            // Check program cards
+            if (!target) target = e.target.closest('[id^="program-"]');
+            
+            // Check exercise items
+            if (!target) target = e.target.closest('[id^="exercise-"]');
+            
             if (!target) return;
-            const action = target.id || target.dataset.action;
+            
+            const action = target.id;
+            if (!action) return;
+            
             this.handleAction(action, target);
         });
     }
 
     handleAction(action, target) {
+        console.log('🔔 Action triggered:', action, target);
+        
         const handlers = {
             // Home
             'btn-start-session': () => this.startSession(),
@@ -61,6 +75,7 @@ class UI {
         // Handle delete set buttons
         if (action.startsWith('btn-delete-set-')) {
             const setIndex = parseInt(action.split('-').pop());
+            console.log('🗑️ Deleting set:', setIndex);
             this.deleteSet(setIndex);
             return;
         }
@@ -68,6 +83,7 @@ class UI {
         // Handle program selection
         if (action.startsWith('program-')) {
             const programId = parseInt(action.split('-')[1]);
+            console.log('📋 Program selected:', programId);
             this.selectProgram(programId);
             return;
         }
@@ -75,12 +91,16 @@ class UI {
         // Handle exercise selection
         if (action.startsWith('exercise-')) {
             const exerciseId = parseInt(action.split('-')[1]);
+            console.log('🏋️ Exercise selected:', exerciseId);
             this.selectExercise(exerciseId);
             return;
         }
 
         if (handlers[action]) {
+            console.log('✅ Handler executed for:', action);
             handlers[action]();
+        } else {
+            console.warn('⚠️ No handler found for:', action);
         }
     }
 
@@ -126,10 +146,15 @@ class UI {
         const programsList = template.getElementById('programs-list');
         const programs = db.getPrograms();
 
+        console.log('📚 Rendering programs:', programs.length, 'programs');
+
         programs.forEach(program => {
+            console.log(`📝 Creating card for program:`, { id: program.id, name: program.name });
+            
             const card = document.createElement('div');
             card.className = 'program-card';
             card.id = `program-${program.id}`;
+            card.style.cursor = 'pointer';  // Make clickable
             card.innerHTML = `
                 <div class="program-name">${program.name}</div>
                 <div class="program-info">
@@ -139,16 +164,27 @@ class UI {
                 <p style="font-size: 12px; color: #757575; margin-top: 8px;">${program.description}</p>
             `;
             programsList.appendChild(card);
+            console.log(`✅ Card created with id: program-${program.id}`);
         });
 
         this.app.appendChild(template);
+        console.log('✅ Programs screen rendered');
     }
 
     selectProgram(programId) {
-        const program = db.getPrograms().find(p => p.id === programId);
+        console.log('📋 selectProgram called with ID:', programId);
+        const programs = db.getPrograms();
+        console.log('📚 Available programs:', programs.map(p => ({ id: p.id, name: p.name })));
+        
+        const program = programs.find(p => p.id === programId);
+        console.log('🔍 Found program:', program);
+        
         if (program) {
             db.setCurrentProgram(program);
+            console.log('✅ Program set:', program.name);
             this.showScreen('home');
+        } else {
+            console.error('❌ Program not found:', programId);
         }
     }
 
@@ -157,7 +193,10 @@ class UI {
         const template = document.getElementById('screen-active-session').cloneNode(true).content;
         const program = db.getCurrentProgram();
         
+        console.log('📋 Current program:', program);
+        
         if (!program) {
+            console.error('❌ No program selected!');
             alert('Veuillez sélectionner un programme');
             this.showScreen('selectProgram');
             return;
@@ -165,6 +204,8 @@ class UI {
 
         const week = program.cycles[0];
         const day = week.days[0];
+        
+        console.log('📅 Starting session:', { week: week.week, day: day.name, exercises: day.exercises });
         
         this.currentSession = {
             programId: program.id,
@@ -181,9 +222,17 @@ class UI {
 
         day.exercises.forEach((exId) => {
             const ex = db.getExerciseById(exId);
+            console.log(`💪 Adding exercise:`, { id: exId, name: ex ? ex.name : '???' });
+            
+            if (!ex) {
+                console.error(`❌ Exercise ${exId} not found!`);
+                return;
+            }
+            
             const item = document.createElement('div');
             item.className = 'exercise-item';
             item.id = `exercise-${exId}`;
+            item.style.cursor = 'pointer';  // Make clickable
             item.innerHTML = `
                 <div class="exercise-info">
                     <h3>${ex.name}</h3>
@@ -202,11 +251,22 @@ class UI {
     }
 
     selectExercise(exerciseId) {
-        if (!this.currentSession) return;
+        console.log('🏋️ selectExercise called with:', exerciseId);
+        
+        if (!this.currentSession) {
+            console.error('❌ No currentSession!');
+            return;
+        }
+        
         const exercise = db.getExerciseById(exerciseId);
+        console.log('🔍 Found exercise:', exercise);
+        
         if (exercise) {
             this.currentExercise = exercise;
+            console.log('✅ currentExercise set to:', exercise.name);
             this.renderExerciseDetail();
+        } else {
+            console.error('❌ Exercise not found:', exerciseId);
         }
     }
 
@@ -483,7 +543,5 @@ class UI {
     }
 }
 
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    new UI();
-});
+// Don't initialize here - App.js handles it
+
