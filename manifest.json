@@ -1,0 +1,47 @@
+{
+  "name": "MyFitTracker",
+  "short_name": "FitTracker",
+  "description": "Application de suivi d'entraînement de musculation avec chrono, enregistrement de séries et statistiques",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAFAFA",
+  "theme_color": "#6200EE",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%236200EE' width='192' height='192'/><text x='50%' y='50%' font-size='100' fill='white' text-anchor='middle' dy='.3em' font-weight='bold'>💪</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%236200EE' width='512' height='512'/><text x='50%' y='50%' font-size='300' fill='white' text-anchor='middle' dy='.3em' font-weight='bold'>💪</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["fitness", "health", "productivity"],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect fill='%236200EE' width='540' height='720'/><text x='50%' y='50%' font-size='100' fill='white' text-anchor='middle' dy='.3em'>MyFitTracker</text></svg>",
+      "sizes": "540x720",
+      "type": "image/svg+xml",
+      "form_factor": "narrow"
+    }
+  ],
+  "scope": "/",
+  "share_target": {
+    "action": "/",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "files": [
+        {
+          "name": "media",
+          "accept": ["application/json"]
+        }
+      ]
+    }
+  }
+}
