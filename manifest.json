@@ -1,47 +1,51 @@
 {
-  "name": "MyFitTracker",
+  "name": "MyFitTracker - Suivi de Musculation",
   "short_name": "FitTracker",
-  "description": "Application de suivi d'entraînement de musculation avec chrono, enregistrement de séries et statistiques",
-  "start_url": "/",
+  "description": "Application complète de suivi d'entraînement musculation 8 semaines avec chrono, sets, statistiques",
+  "start_url": "./index.html",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#FAFAFA",
   "theme_color": "#6200EE",
-  "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%236200EE' width='192' height='192'/><text x='50%' y='50%' font-size='100' fill='white' text-anchor='middle' dy='.3em' font-weight='bold'>💪</text></svg>",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><defs><linearGradient id='g' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:%236200EE'/><stop offset='100%' style='stop-color:%2305B8A0'/></linearGradient></defs><rect fill='url(%23g)' width='192' height='192'/><text x='96' y='110' font-size='120' fill='white' text-anchor='middle' font-weight='bold' font-family='Arial'>💪</text></svg>",
       "sizes": "192x192",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%236200EE' width='512' height='512'/><text x='50%' y='50%' font-size='300' fill='white' text-anchor='middle' dy='.3em' font-weight='bold'>💪</text></svg>",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><defs><linearGradient id='g2' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:%236200EE'/><stop offset='100%' style='stop-color:%2305B8A0'/></linearGradient></defs><rect fill='url(%23g2)' width='512' height='512'/><text x='256' y='300' font-size='350' fill='white' text-anchor='middle' font-weight='bold'>💪</text></svg>",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ],
-  "categories": ["fitness", "health", "productivity"],
+  "categories": ["fitness", "health", "sports"],
   "screenshots": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect fill='%236200EE' width='540' height='720'/><text x='50%' y='50%' font-size='100' fill='white' text-anchor='middle' dy='.3em'>MyFitTracker</text></svg>",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><defs><linearGradient id='g3' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:%236200EE'/><stop offset='100%' style='stop-color:%2305B8A0'/></linearGradient></defs><rect fill='url(%23g3)' width='540' height='720'/><text x='270' y='360' font-size='100' fill='white' text-anchor='middle'>MyFitTracker</text></svg>",
       "sizes": "540x720",
       "type": "image/svg+xml",
       "form_factor": "narrow"
     }
   ],
-  "scope": "/",
-  "share_target": {
-    "action": "/",
-    "method": "POST",
-    "enctype": "multipart/form-data",
-    "params": {
-      "files": [
-        {
-          "name": "media",
-          "accept": ["application/json"]
-        }
-      ]
+  "shortcuts": [
+    {
+      "name": "Commencer Session",
+      "short_name": "Session",
+      "description": "Lancer immédiatement une session d'entraînement",
+      "url": "./index.html?action=start-session",
+      "icons": [{"src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%236200EE' width='192' height='192'/><text x='96' y='110' font-size='120' fill='white' text-anchor='middle'>▶</text></svg>", "sizes": "192x192"}]
+    },
+    {
+      "name": "Statistiques",
+      "short_name": "Stats",
+      "description": "Voir vos statistiques et progressions",
+      "url": "./index.html?action=stats",
+      "icons": [{"src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%2305B8A0' width='192' height='192'/><text x='96' y='110' font-size='120' fill='white' text-anchor='middle'>📊</text></svg>", "sizes": "192x192"}]
     }
-  }
+  ],
+  "prefer_related_applications": false
 }

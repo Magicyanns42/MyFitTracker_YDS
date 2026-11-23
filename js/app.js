@@ -1,35 +1,20 @@
-// Main App - PWA Setup and initialization
+// App Initialization & PWA Setup
 class App {
     constructor() {
         this.registerServiceWorker();
-        this.setupPWA();
+        console.log('✅ MyFitTracker v1.0.0 Initialized');
     }
 
     registerServiceWorker() {
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(err => {
-                console.log('SW registration failed:', err);
+            navigator.serviceWorker.register('./sw.js').catch(err => {
+                console.log('Service Worker registration skipped:', err.message);
             });
         }
     }
-
-    setupPWA() {
-        // Add to home screen prompt
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            // You could show an install button here
-        });
-
-        // Handle app installed
-        window.addEventListener('appinstalled', () => {
-            console.log('MyFitTracker installed as PWA');
-        });
-    }
 }
 
-// Initialize when DOM is ready
+// Initialize
 document.addEventListener('DOMContentLoaded', () => {
     new App();
 });

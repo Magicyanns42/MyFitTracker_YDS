@@ -1,0 +1,143 @@
+🎯 LISEZ-MOI EN PREMIER!
+========================
+
+Bienvenue dans MyFitTracker v1.0.0! 💪
+
+Ceci est l'application COMPLÈTE et prête à utiliser.
+
+📱 LANCEMENT INSTANTANÉ
+========================
+
+**Option 1: Le Plus Simple**
+1. Double-cliquez: index.html
+2. L'app s'ouvre dans Chrome ✅
+3. C'est tout!
+
+**Option 2: Avec Serveur Local**
+```
+Ouvrez PowerShell dans ce dossier
+Tapez: python -m http.server 8000
+Allez à: http://localhost:8000
+```
+
+**Option 3: Sur Votre Téléphone**
+1. Lancez le serveur local (Option 2)
+2. Chrome sur téléphone: http://ADRESSE_IP:8000
+3. Menu (⋯) → Installer l'app
+4. Voilà! 🚀
+
+🎮 PREMIÈRE SESSION (3 MIN)
+============================
+
+1. Accueil → Voir vos stats
+2. 📋 Changer Programme → Upper Body
+3. ▶ Commencer Session
+4. Cliquez exercice (ex: Bench Press)
+5. Regardez l'animation SVG
+6. Remplissez: Reps, Poids, RPE (1-10)
+7. + Ajouter → Répétez 3x
+8. Exercice Suivant →
+9. ✓ Terminer Session
+
+✅ Vos données sont sauvegardées! 
+
+📊 FONCTIONNALITÉS COMPLÈTES
+=============================
+
+✅ 10 Exercices avec animations SVG
+✅ Programme 8 semaines (Upper Body)
+✅ Chronomètre intégré
+✅ Enregistrement détaillé par série
+✅ Suivi du poids
+✅ Statistiques & graphiques
+✅ Hors ligne (PWA)
+✅ Données locales (100% sécurisé)
+✅ Export/Import JSON
+
+🌐 SUR GITHUB PAGES (Partout!)
+===============================
+
+Pour avoir l'app accessible partout (pas besoin du PC):
+
+1. Poussez sur GitHub:
+```
+git init
+git add .
+git commit -m "Initial: MyFitTracker v1.0.0"
+git remote add origin https://github.com/VOTRE_USERNAME/MyFitTracker_YDS.git
+git branch -M main
+git push -u origin main
+```
+
+2. GitHub.com → Settings → Pages → Source: main
+
+3. L'app sera à:
+https://VOTRE_USERNAME.github.io/MyFitTracker_YDS
+
+4. Ouvrez sur votre téléphone → Installer comme app!
+
+💡 CONSEILS RAPIDES
+====================
+
+⚙️ Modifier Exercices
+- Ouvrez: js/exercises.js
+- Trouvez EXERCISES_DATABASE
+- Éditez et rafraîchissez (Ctrl+Shift+R)
+
+🎨 Changer Couleurs
+- Ouvrez: css/styles.css
+- Éditez :root variables
+- Rafraîchissez
+
+📤 Exporter Vos Données
+- ⚙️ Paramètres → 📥 Exporter Données
+- Fichier JSON téléchargé
+- Sauvegarde de secours!
+
+🗑️ Effacer Toutes Données
+- ⚙️ Paramètres → 🗑️ Tout Effacer
+- Avec double confirmation (par sécurité)
+
+🆘 PROBLÈMES?
+=============
+
+L'app est blanche?
+→ Rafraîchissez: Ctrl+Shift+R
+
+Données perdues?
+→ Pas en navigation privée?
+→ LocalStorage activé?
+
+Pas d'animation?
+→ Navigateur à jour?
+→ Rafraîchissez
+
+Besoin d'aide?
+→ Lire QUICKSTART.md (guide 2 min)
+→ Lire README.md (doc complète)
+
+📄 FICHIERS IMPORTANTS
+======================
+
+index.html         ← Ouvrir ce fichier
+js/exercises.js    ← 10 exercices complètes
+js/data.js         ← Gestion données
+js/svg-animations.js ← Animations mouvements
+css/styles.css     ← Design complet
+manifest.json      ← Config PWA
+README.md          ← Documentation
+
+🚀 VOUS ÊTES PRÊT!
+==================
+
+1. Ouvrez index.html
+2. Testez votre première session
+3. Installez comme app PWA
+4. Poussez sur GitHub Pages
+5. Entraînez-vous! 💪
+
+Bon courage! 💪
+
+Questions? Lire QUICKSTART.md ou README.md
+
+MyFitTracker v1.0.0 ✅

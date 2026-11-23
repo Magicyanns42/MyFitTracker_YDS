@@ -3,44 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyFitTracker - Suivi Musculation</title>
+    <title>MyFitTracker - Suivi Musculation Professionnel</title>
     <link rel="stylesheet" href="./css/styles.css">
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#6200EE">
+    <meta name="description" content="Application complète de suivi d'entraînement musculation avec programme 8 semaines">
     <base href="/">
 </head>
 <body>
     <div id="app"></div>
-    
-    <!-- Templates -->
+
+    <!-- TEMPLATES -->
+    <!-- HOME SCREEN -->
     <template id="screen-home">
         <div class="screen">
             <header class="header">
-                <h1>💪 MyFitTracker</h1>
-                <p class="subtitle">Suivi de Musculation</p>
+                <div class="header-content">
+                    <h1>💪 MyFitTracker</h1>
+                    <p class="subtitle">Suivi de Musculation Professionnel</p>
+                </div>
             </header>
 
             <div class="card-container">
                 <div class="card stat-card">
+                    <div class="stat-emoji">📅</div>
                     <div class="stat-number" id="stat-week">-</div>
-                    <div class="stat-label">Semaine en cours</div>
+                    <div class="stat-label">Semaine</div>
                 </div>
                 <div class="card stat-card">
+                    <div class="stat-emoji">🏋️</div>
                     <div class="stat-number" id="stat-sessions">0</div>
-                    <div class="stat-label">Sessions complétées</div>
+                    <div class="stat-label">Sessions</div>
                 </div>
                 <div class="card stat-card">
+                    <div class="stat-emoji">⚖️</div>
                     <div class="stat-number" id="stat-weight">-</div>
-                    <div class="stat-label">Poids (kg)</div>
+                    <div class="stat-label">Poids</div>
                 </div>
             </div>
 
+            <div class="welcome-card card">
+                <h2>Bienvenue! 🎯</h2>
+                <p id="program-name"></p>
+                <p class="text-secondary">Commencez votre entraînement et progressez!</p>
+            </div>
+
             <div class="action-buttons">
-                <button class="btn btn-primary" id="btn-start-session">
+                <button class="btn btn-primary btn-lg" id="btn-start-session">
                     ▶ Commencer une Session
                 </button>
                 <button class="btn btn-secondary" id="btn-select-program">
-                    📋 Changer de Programme
+                    📋 Changer Programme
                 </button>
                 <button class="btn btn-secondary" id="btn-weight">
                     ⚖️ Enregistrer Poids
@@ -55,46 +68,48 @@
         </div>
     </template>
 
+    <!-- SELECT PROGRAM SCREEN -->
     <template id="screen-select-program">
         <div class="screen">
             <header class="header with-back">
                 <button class="btn-back" id="btn-back-home">←</button>
-                <h2>Sélectionner un Programme</h2>
+                <h2>Choisir un Programme</h2>
             </header>
 
-            <div class="programs-list" id="programs-list">
-                <!-- Dynamically filled -->
-            </div>
+            <div class="programs-list" id="programs-list"></div>
         </div>
     </template>
 
+    <!-- ACTIVE SESSION SCREEN -->
     <template id="screen-active-session">
         <div class="screen">
             <header class="header with-back">
                 <button class="btn-back" id="btn-back-session">←</button>
-                <h2 id="session-title">Session Entraînement</h2>
+                <h2 id="session-title">Session</h2>
             </header>
 
-            <div class="session-info">
+            <div class="session-info card">
                 <div class="timer-display" id="timer-display">00:00:00</div>
                 <div class="timer-controls">
-                    <button class="btn btn-small" id="btn-timer-start">▶ Démarrer</button>
-                    <button class="btn btn-small" id="btn-timer-pause">⏸ Pause</button>
-                    <button class="btn btn-small" id="btn-timer-reset">🔄 Réinitialiser</button>
+                    <button class="btn btn-small" id="btn-timer-start">▶</button>
+                    <button class="btn btn-small" id="btn-timer-pause">⏸</button>
+                    <button class="btn btn-small" id="btn-timer-reset">🔄</button>
                 </div>
             </div>
 
-            <div class="exercises-list" id="exercises-list">
-                <!-- Dynamically filled -->
+            <div class="card">
+                <h3>Exercices du jour</h3>
+                <div class="exercises-list" id="exercises-list"></div>
             </div>
 
             <div class="action-buttons">
-                <button class="btn btn-success" id="btn-finish-session">✓ Terminer la Session</button>
+                <button class="btn btn-success" id="btn-finish-session">✓ Terminer</button>
                 <button class="btn btn-danger" id="btn-abandon-session">✕ Abandonner</button>
             </div>
         </div>
     </template>
 
+    <!-- EXERCISE DETAIL SCREEN -->
     <template id="screen-exercise-detail">
         <div class="screen">
             <header class="header with-back">
@@ -102,45 +117,51 @@
                 <h2 id="exercise-name">Exercice</h2>
             </header>
 
-            <div class="exercise-detail">
-                <div class="exercise-image" id="exercise-image">
-                    <div class="image-placeholder">📸</div>
+            <div class="exercise-container">
+                <div class="exercise-visual card">
+                    <div class="exercise-animation" id="exercise-animation"></div>
                 </div>
 
                 <div class="card">
-                    <h3>Instructions</h3>
+                    <h3>📋 Instructions</h3>
                     <p id="exercise-instructions"></p>
                 </div>
 
                 <div class="card">
-                    <h3>Conseils</h3>
+                    <h3>💡 Conseils</h3>
                     <p id="exercise-tips"></p>
                 </div>
 
                 <div class="card">
-                    <h3>Tempo Recommandé</h3>
-                    <p id="exercise-tempo"></p>
+                    <h3>⏱️ Tempo</h3>
+                    <p id="exercise-tempo" class="tempo-info"></p>
                 </div>
 
-                <div class="sets-recorder">
-                    <h3>Enregistrer les Séries</h3>
+                <div class="card">
+                    <h3>🎯 Objectif</h3>
+                    <p id="exercise-target"></p>
+                </div>
+
+                <div class="card sets-recorder">
+                    <h3>📝 Enregistrer Série</h3>
                     <div class="set-form" id="set-form">
-                        <input type="number" id="input-reps" placeholder="Reps" min="0">
-                        <input type="number" id="input-weight" placeholder="Poids (kg)" min="0" step="0.5">
+                        <input type="number" id="input-reps" placeholder="Reps" min="1" max="50">
+                        <input type="number" id="input-weight" placeholder="Kg" min="0" step="0.5">
                         <input type="number" id="input-rpe" placeholder="RPE (1-10)" min="1" max="10">
-                        <button class="btn btn-primary" id="btn-add-set">+ Ajouter Série</button>
+                        <button class="btn btn-primary" id="btn-add-set">+ Ajouter</button>
                     </div>
 
-                    <div class="sets-history" id="sets-history">
-                        <!-- Sets listed here -->
-                    </div>
+                    <div class="sets-history" id="sets-history"></div>
                 </div>
 
-                <button class="btn btn-secondary" id="btn-next-exercise">Exercice Suivant →</button>
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" id="btn-next-exercise">Exercice Suivant →</button>
+                </div>
             </div>
         </div>
     </template>
 
+    <!-- WEIGHT ENTRY SCREEN -->
     <template id="screen-weight-entry">
         <div class="screen">
             <header class="header with-back">
@@ -149,18 +170,19 @@
             </header>
 
             <div class="card">
-                <label for="weight-input">Poids (kg):</label>
+                <label for="weight-input">Votre poids (kg):</label>
                 <input type="number" id="weight-input" placeholder="Ex: 75.5" step="0.1" min="0">
-                <button class="btn btn-primary" id="btn-save-weight">Enregistrer</button>
+                <button class="btn btn-primary btn-lg" id="btn-save-weight">Enregistrer</button>
             </div>
 
             <div class="card">
-                <h3>Historique Poids</h3>
+                <h3>📊 Historique Poids</h3>
                 <div id="weight-history"></div>
             </div>
         </div>
     </template>
 
+    <!-- STATS SCREEN -->
     <template id="screen-stats">
         <div class="screen">
             <header class="header with-back">
@@ -170,31 +192,35 @@
 
             <div class="stats-grid">
                 <div class="card stat-card">
+                    <div class="stat-emoji">🏋️</div>
                     <div class="stat-number" id="stats-total-sessions">0</div>
-                    <div class="stat-label">Sessions Totales</div>
+                    <div class="stat-label">Sessions</div>
                 </div>
                 <div class="card stat-card">
+                    <div class="stat-emoji">⏱️</div>
                     <div class="stat-number" id="stats-total-time">0h</div>
-                    <div class="stat-label">Temps Total</div>
+                    <div class="stat-label">Temps</div>
                 </div>
                 <div class="card stat-card">
+                    <div class="stat-emoji">⚖️</div>
                     <div class="stat-number" id="stats-avg-weight">-</div>
-                    <div class="stat-label">Poids Moyen</div>
+                    <div class="stat-label">Poids Moy</div>
                 </div>
             </div>
 
             <div class="card">
-                <h3>Poids au Fil du Temps</h3>
+                <h3>📈 Poids au Fil du Temps</h3>
                 <div id="weight-chart" class="chart-container"></div>
             </div>
 
             <div class="card">
-                <h3>Exercices les Plus Pratiqués</h3>
+                <h3>🔥 Top 5 Exercices</h3>
                 <div id="exercises-stats"></div>
             </div>
         </div>
     </template>
 
+    <!-- SETTINGS SCREEN -->
     <template id="screen-settings">
         <div class="screen">
             <header class="header with-back">
@@ -204,27 +230,31 @@
 
             <div class="settings-container">
                 <div class="card">
-                    <h3>Données</h3>
-                    <button class="btn btn-secondary" id="btn-export-data">📥 Exporter Données</button>
-                    <button class="btn btn-danger" id="btn-clear-data">🗑️ Effacer Toutes Données</button>
-                </div>
-
-                <div class="card">
-                    <h3>À Propos</h3>
-                    <p>MyFitTracker v1.0.0</p>
-                    <p>Application de Suivi de Musculation</p>
-                    <p class="text-small">Données sauvegardées localement en toute sécurité</p>
-                </div>
-
-                <div class="card">
-                    <h3>Historique Sessions</h3>
+                    <h3>📋 Dernières Sessions</h3>
                     <div id="sessions-history"></div>
+                </div>
+
+                <div class="card">
+                    <h3>💾 Données</h3>
+                    <button class="btn btn-secondary btn-lg" id="btn-export-data">📥 Exporter JSON</button>
+                    <button class="btn btn-danger btn-lg" id="btn-clear-data">🗑️ Tout Effacer</button>
+                </div>
+
+                <div class="card">
+                    <h3>ℹ️ À Propos</h3>
+                    <p><strong>MyFitTracker v1.0.0</strong></p>
+                    <p>Application complète de suivi de musculation</p>
+                    <p class="text-secondary">✅ Données sauvegardées localement</p>
+                    <p class="text-secondary">✅ Hors ligne après installation</p>
+                    <p class="text-secondary">✅ 100% Gratuit & Open Source</p>
                 </div>
             </div>
         </div>
     </template>
 
+    <script src="./js/exercises.js"></script>
     <script src="./js/data.js"></script>
+    <script src="./js/svg-animations.js"></script>
     <script src="./js/ui.js"></script>
     <script src="./js/app.js"></script>
 </body>

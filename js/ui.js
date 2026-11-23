@@ -1,9 +1,10 @@
-// UI Management
+// UI Management System
 class UI {
     constructor() {
         this.app = document.getElementById('app');
         this.currentScreen = 'home';
         this.currentSession = null;
+        this.currentExercise = null;
         this.timerInterval = null;
         this.timerSeconds = 0;
         this.setupEventListeners();
@@ -14,7 +15,6 @@ class UI {
         document.addEventListener('click', (e) => {
             const target = e.target.closest('button, [data-action]');
             if (!target) return;
-
             const action = target.id || target.dataset.action;
             this.handleAction(action, target);
         });
@@ -22,38 +22,38 @@ class UI {
 
     handleAction(action, target) {
         const handlers = {
-            // Home Screen
+            // Home
             'btn-start-session': () => this.startSession(),
             'btn-select-program': () => this.showScreen('selectProgram'),
             'btn-weight': () => this.showScreen('weightEntry'),
             'btn-stats': () => this.showScreen('stats'),
             'btn-settings': () => this.showScreen('settings'),
 
-            // Program Selection
+            // Navigation
             'btn-back-home': () => this.showScreen('home'),
-
-            // Active Session
             'btn-back-session': () => this.showScreen('home'),
+            'btn-back-exercise': () => this.showExercisesList(),
+            'btn-back-weight': () => this.showScreen('home'),
+            'btn-back-stats': () => this.showScreen('home'),
+            'btn-back-settings': () => this.showScreen('home'),
+
+            // Session
             'btn-timer-start': () => this.startTimer(),
             'btn-timer-pause': () => this.pauseTimer(),
             'btn-timer-reset': () => this.resetTimer(),
             'btn-finish-session': () => this.finishSession(),
-            'btn-abandon-session': () => { if (confirm('Abandonner la session?')) this.showScreen('home'); },
+            'btn-abandon-session': () => { 
+                if (confirm('Abandonner la session?')) this.showScreen('home');
+            },
 
-            // Exercise Detail
-            'btn-back-exercise': () => this.showExercisesList(),
-            'btn-add-set': () => this.addSet(target),
+            // Exercise
+            'btn-add-set': () => this.addSet(),
             'btn-next-exercise': () => this.nextExercise(),
 
-            // Weight Entry
-            'btn-back-weight': () => this.showScreen('home'),
+            // Weight
             'btn-save-weight': () => this.saveWeight(),
 
-            // Stats
-            'btn-back-stats': () => this.showScreen('home'),
-
             // Settings
-            'btn-back-settings': () => this.showScreen('home'),
             'btn-export-data': () => this.exportData(),
             'btn-clear-data': () => this.clearData()
         };
@@ -88,6 +88,7 @@ class UI {
     showScreen(screenName) {
         this.currentScreen = screenName;
         this.app.innerHTML = '';
+        this.pauseTimer();
 
         const screenMap = {
             'home': () => this.renderHome(),
@@ -104,20 +105,22 @@ class UI {
         }
     }
 
+    // HOME SCREEN
     renderHome() {
         const template = document.getElementById('screen-home').cloneNode(true).content;
-        
         const program = db.getCurrentProgram();
         const stats = db.getStats();
         const latestWeight = db.getLatestWeight();
 
-        template.getElementById('stat-week').textContent = program ? `Semaine 1/${program.duration}` : '-';
+        template.getElementById('stat-week').textContent = program ? `1/${program.duration}` : '-';
         template.getElementById('stat-sessions').textContent = stats.totalSessions;
-        template.getElementById('stat-weight').textContent = latestWeight ? `${latestWeight} kg` : '-';
+        template.getElementById('stat-weight').textContent = latestWeight ? `${latestWeight}` : '-';
+        template.getElementById('program-name').textContent = program ? program.name : 'Aucun programme';
 
         this.app.appendChild(template);
     }
 
+    // PROGRAM SELECTION
     renderSelectProgram() {
         const template = document.getElementById('screen-select-program').cloneNode(true).content;
         const programsList = template.getElementById('programs-list');
@@ -130,9 +133,10 @@ class UI {
             card.innerHTML = `
                 <div class="program-name">${program.name}</div>
                 <div class="program-info">
-                    <span>${program.duration} semaines</span>
-                    <span>${program.cycles[0].days.length} jour(s)/semaine</span>
+                    <span>⏱️ ${program.duration} semaines</span>
+                    <span>📋 ${program.cycles.length} cycles</span>
                 </div>
+                <p style="font-size: 12px; color: #757575; margin-top: 8px;">${program.description}</p>
             `;
             programsList.appendChild(card);
         });
@@ -148,6 +152,7 @@ class UI {
         }
     }
 
+    // ACTIVE SESSION
     renderActiveSession() {
         const template = document.getElementById('screen-active-session').cloneNode(true).content;
         const program = db.getCurrentProgram();
@@ -158,7 +163,6 @@ class UI {
             return;
         }
 
-        // Get first week, first day exercises
         const week = program.cycles[0];
         const day = week.days[0];
         
@@ -166,18 +170,20 @@ class UI {
             programId: program.id,
             week: 1,
             day: 1,
+            dayName: day.name,
             exercises: day.exercises,
             startTime: Date.now(),
             sets: []
         };
 
-        template.getElementById('session-title').textContent = `${day.name}`;
+        template.getElementById('session-title').textContent = day.name;
         const exercisesList = template.getElementById('exercises-list');
 
-        day.exercises.forEach((ex, index) => {
+        day.exercises.forEach((exId) => {
+            const ex = db.getExerciseById(exId);
             const item = document.createElement('div');
             item.className = 'exercise-item';
-            item.id = `exercise-${ex.id}`;
+            item.id = `exercise-${exId}`;
             item.innerHTML = `
                 <div class="exercise-info">
                     <h3>${ex.name}</h3>
@@ -197,13 +203,14 @@ class UI {
 
     selectExercise(exerciseId) {
         if (!this.currentSession) return;
-        const exercise = this.currentSession.exercises.find(ex => ex.id === exerciseId);
+        const exercise = db.getExerciseById(exerciseId);
         if (exercise) {
             this.currentExercise = exercise;
             this.renderExerciseDetail();
         }
     }
 
+    // EXERCISE DETAIL
     renderExerciseDetail() {
         if (!this.currentExercise) return;
 
@@ -213,9 +220,14 @@ class UI {
         template.getElementById('exercise-name').textContent = ex.name;
         template.getElementById('exercise-instructions').textContent = ex.instructions;
         template.getElementById('exercise-tips').textContent = ex.tips;
-        template.getElementById('exercise-tempo').textContent = `Tempo: ${ex.tempo}`;
+        template.getElementById('exercise-tempo').textContent = ex.tempo;
+        template.getElementById('exercise-target').textContent = `${ex.targetMuscles} • Difficulté: ${ex.difficulty}`;
 
-        // Load sets for this exercise
+        // Animation SVG
+        const animation = template.getElementById('exercise-animation');
+        animation.innerHTML = SVGAnimations.getAnimationForExercise(ex.id);
+
+        // Load sets
         const setsHistory = template.getElementById('sets-history');
         const sessionSets = this.currentSession.sets.filter(s => s.exerciseId === ex.id);
         
@@ -226,7 +238,7 @@ class UI {
                 <div class="set-item-info">
                     <strong>Série ${index + 1}</strong>
                     <div class="set-item-data">
-                        ${set.reps} reps × ${set.weight}kg | RPE: ${set.rpe}
+                        ${set.reps} reps × ${set.weight}kg | RPE: ${set.rpe}/10
                     </div>
                 </div>
                 <button class="set-delete" id="btn-delete-set-${index}">✕</button>
@@ -242,15 +254,15 @@ class UI {
         this.showScreen('activeSession');
     }
 
-    addSet(button) {
+    addSet() {
         if (!this.currentExercise || !this.currentSession) return;
 
         const reps = parseInt(document.getElementById('input-reps').value);
         const weight = parseFloat(document.getElementById('input-weight').value);
         const rpe = parseInt(document.getElementById('input-rpe').value);
 
-        if (!reps || !weight || !rpe) {
-            alert('Remplissez tous les champs');
+        if (!reps || isNaN(weight) || !rpe) {
+            alert('Remplissez tous les champs correctement');
             return;
         }
 
@@ -262,29 +274,30 @@ class UI {
             timestamp: Date.now()
         });
 
-        // Clear inputs
         document.getElementById('input-reps').value = '';
         document.getElementById('input-weight').value = '';
         document.getElementById('input-rpe').value = '';
 
-        // Refresh exercise detail
         this.renderExerciseDetail();
     }
 
     deleteSet(index) {
-        if (this.currentSession.sets[index]) {
-            this.currentSession.sets.splice(index, 1);
+        const sessionSets = this.currentSession.sets.filter(s => s.exerciseId === this.currentExercise.id);
+        if (sessionSets[index]) {
+            const globalIndex = this.currentSession.sets.findIndex(s => s === sessionSets[index]);
+            this.currentSession.sets.splice(globalIndex, 1);
             this.renderExerciseDetail();
         }
     }
 
     nextExercise() {
-        const currentIndex = this.currentSession.exercises.findIndex(e => e.id === this.currentExercise.id);
+        const currentIndex = this.currentSession.exercises.indexOf(this.currentExercise.id);
         if (currentIndex < this.currentSession.exercises.length - 1) {
-            this.currentExercise = this.currentSession.exercises[currentIndex + 1];
+            const nextExId = this.currentSession.exercises[currentIndex + 1];
+            this.currentExercise = db.getExerciseById(nextExId);
             this.renderExerciseDetail();
         } else {
-            alert('Dernier exercice atteint');
+            alert('Dernier exercice atteint! Terminez la session.');
         }
     }
 
@@ -302,12 +315,13 @@ class UI {
             completedSets: this.currentSession.sets.length
         });
 
-        alert(`Session terminée! ${this.currentSession.sets.length} séries enregistrées`);
+        const minutes = Math.floor(duration / 60);
+        alert(`✅ Session terminée!\n${this.currentSession.sets.length} séries enregistrées\nDurée: ${minutes}m`);
         this.currentSession = null;
         this.showScreen('home');
     }
 
-    // Weight Management
+    // WEIGHT ENTRY
     renderWeightEntry() {
         const template = document.getElementById('screen-weight-entry').cloneNode(true).content;
         const history = template.getElementById('weight-history');
@@ -335,11 +349,11 @@ class UI {
         }
 
         db.addWeight(weight);
-        alert(`Poids enregistré: ${weight} kg`);
+        alert(`✅ Poids enregistré: ${weight} kg`);
         this.showScreen('home');
     }
 
-    // Statistics
+    // STATISTICS
     renderStats() {
         const template = document.getElementById('screen-stats').cloneNode(true).content;
         const stats = db.getStats();
@@ -365,23 +379,15 @@ class UI {
                 bar.title = `${w.weight}kg`;
                 chartContainer.appendChild(bar);
             });
+        } else {
+            chartContainer.innerHTML = '<p style="text-align:center; padding:20px; color:#999;">Aucune donnée de poids</p>';
         }
 
         // Top exercises
         const exercisesStats = template.getElementById('exercises-stats');
-        const sessions = db.getSessions();
-        const exerciseCount = {};
+        const exStats = db.getExerciseStats();
 
-        sessions.forEach(session => {
-            session.sets?.forEach(set => {
-                const exName = session.exercises?.find(e => e.id === set.exerciseId)?.name;
-                if (exName) {
-                    exerciseCount[exName] = (exerciseCount[exName] || 0) + 1;
-                }
-            });
-        });
-
-        Object.entries(exerciseCount)
+        Object.entries(exStats)
             .sort((a, b) => b[1] - a[1])
             .slice(0, 5)
             .forEach(([name, count]) => {
@@ -394,23 +400,23 @@ class UI {
         this.app.appendChild(template);
     }
 
-    // Settings
+    // SETTINGS
     renderSettings() {
         const template = document.getElementById('screen-settings').cloneNode(true).content;
         const history = template.getElementById('sessions-history');
 
-        const sessions = db.getSessions();
-        sessions.slice().reverse().slice(0, 10).forEach(session => {
+        const sessions = db.getRecentSessions(10);
+        sessions.forEach(session => {
             const date = new Date(session.date).toLocaleDateString('fr-FR');
-            const time = new Date(session.date).toLocaleTimeString('fr-FR');
+            const time = new Date(session.date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
             const duration = Math.floor(session.duration / 60);
             
             const item = document.createElement('div');
             item.className = 'session-item';
             item.innerHTML = `
                 <div>
-                    <strong>${date} ${time}</strong><br>
-                    <small>${session.exercises.length} exercices</small>
+                    <strong>${date} ${time}</strong>
+                    <small>${session.dayName || 'Session'}</small>
                 </div>
                 <span>${duration}m</span>
             `;
@@ -427,26 +433,25 @@ class UI {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `myfittracker-backup-${new Date().toISOString().split('T')[0]}.json`;
+        a.download = `myfittracker-${new Date().toISOString().split('T')[0]}.json`;
         a.click();
         URL.revokeObjectURL(url);
-        alert('Données exportées!');
+        alert('✅ Données exportées!');
     }
 
     clearData() {
-        if (confirm('Êtes-vous sûr? Cette action est irréversible!')) {
-            if (confirm('Dernière confirmation: TOUT sera effacé!')) {
+        if (confirm('Êtes-vous sûr? Toutes les données seront effacées!')) {
+            if (confirm('DERNIÈRE CONFIRMATION - Cette action est irréversible!')) {
                 db.clearAllData();
-                alert('Toutes les données ont été effacées');
+                alert('✅ Données effacées');
                 this.showScreen('home');
             }
         }
     }
 
-    // Timer Management
+    // TIMER
     startTimer() {
         if (this.timerInterval) return;
-
         this.timerInterval = setInterval(() => {
             this.timerSeconds++;
             this.updateTimerDisplay();
@@ -478,7 +483,7 @@ class UI {
     }
 }
 
-// Initialize UI when DOM is loaded
+// Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     new UI();
 });
