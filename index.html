@@ -4,11 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MyFitTracker - Suivi Musculation Professionnel</title>
-    <link rel="stylesheet" href="./css/styles.css">
-    <link rel="manifest" href="./manifest.json">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#6200EE">
     <meta name="description" content="Application complète de suivi d'entraînement musculation avec programme 8 semaines">
-    <base href="/MyFitTracker_YDS/">
 </head>
 <body>
     <div id="app"></div>
@@ -64,7 +63,9 @@
                 <button class="btn btn-secondary" id="btn-settings">
                     ⚙️ Paramètres
                 </button>
-            </div>
+                <button class="btn btn-secondary" id="btn-manual">
+                    📖 Manuel
+                </button>
         </div>
     </template>
 
@@ -117,6 +118,22 @@
                 <h2 id="exercise-name">Exercice</h2>
             </header>
 
+            <!-- TIMER ALWAYS VISIBLE -->
+            <div class="timer-fixed card">
+                <div class="timer-display-small" id="timer-display-exercise">00:00:00</div>
+                <div class="timer-controls-small">
+                    <button class="btn btn-tiny" id="btn-timer-start-ex">▶</button>
+                    <button class="btn btn-tiny" id="btn-timer-pause-ex">⏸</button>
+                    <button class="btn btn-tiny" id="btn-timer-reset-ex">🔄</button>
+                </div>
+            </div>
+
+            <!-- REST TIMER DISPLAY -->
+            <div class="rest-timer-card card" id="rest-timer-card" style="display: none;">
+                <div class="rest-timer-display" id="rest-timer-display">Repos: 90s</div>
+                <button class="btn btn-secondary" id="btn-stop-rest">⏸ Arrêter Repos</button>
+            </div>
+
             <div class="exercise-container">
                 <div class="exercise-visual card">
                     <div class="exercise-animation" id="exercise-animation"></div>
@@ -148,7 +165,7 @@
                         <input type="number" id="input-reps" placeholder="Reps" min="1" max="50">
                         <input type="number" id="input-weight" placeholder="Kg" min="0" step="0.5">
                         <input type="number" id="input-rpe" placeholder="RPE (1-10)" min="1" max="10">
-                        <button class="btn btn-primary" id="btn-add-set">+ Ajouter</button>
+                        <button class="btn btn-primary btn-lg" id="btn-add-set">✓ Valider Série</button>
                     </div>
 
                     <div class="sets-history" id="sets-history"></div>
@@ -235,15 +252,61 @@
                 </div>
 
                 <div class="card">
+                    <h3>🎨 Apparence</h3>
+                    <div class="settings-toggle">
+                        <label for="toggle-dark-mode">🌙 Mode Sombre</label>
+                        <input type="checkbox" id="toggle-dark-mode" class="toggle-switch">
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>🔊 Audio & Notifications</h3>
+                    <div class="settings-toggle">
+                        <label for="toggle-audio">🔉 Signaux Sonores</label>
+                        <input type="checkbox" id="toggle-audio" class="toggle-switch" checked>
+                    </div>
+                    <div class="settings-toggle">
+                        <label for="toggle-notifications">🔔 Notifications</label>
+                        <input type="checkbox" id="toggle-notifications" class="toggle-switch" checked>
+                    </div>
+                    <button class="btn btn-secondary" id="btn-request-notification-perm">🔔 Autoriser Notifications</button>
+                </div>
+
+                <div class="card">
+                    <h3>⏱️ Repos Entre Séries</h3>
+                    <div class="settings-toggle">
+                        <label for="toggle-smart-rest">🤖 Chrono de Repos Auto</label>
+                        <input type="checkbox" id="toggle-smart-rest" class="toggle-switch" checked>
+                    </div>
+                    <div class="settings-toggle">
+                        <label for="toggle-rest-auto-start">⚡ Démarrage Auto</label>
+                        <input type="checkbox" id="toggle-rest-auto-start" class="toggle-switch">
+                    </div>
+                    <div class="settings-input">
+                        <label for="input-rest-time">Durée Repos (secondes)</label>
+                        <input type="number" id="input-rest-time" min="30" max="300" value="90" class="input-field">
+                    </div>
+                </div>
+
+                <div class="card">
                     <h3>💾 Données</h3>
                     <button class="btn btn-secondary btn-lg" id="btn-export-data">📥 Exporter JSON</button>
                     <button class="btn btn-danger btn-lg" id="btn-clear-data">🗑️ Tout Effacer</button>
                 </div>
 
                 <div class="card">
+                    <h3>🔄 Sauvegarde Automatique</h3>
+                    <p class="text-secondary">Données sauvegardées automatiquement chaque jour à minuit</p>
+                    <button class="btn btn-primary btn-lg" id="btn-backup-now">💾 Sauvegarder Maintenant</button>
+                    <div id="backup-status" style="margin-top: 10px; font-size: 0.9em;"></div>
+                </div>
+
+                <div class="card">
                     <h3>ℹ️ À Propos</h3>
-                    <p><strong>MyFitTracker v1.0.0</strong></p>
+                    <p><strong>MyFitTracker v1.1.0</strong></p>
                     <p>Application complète de suivi de musculation</p>
+                    <p class="text-secondary">✅ Audio & Notifications</p>
+                    <p class="text-secondary">✅ Chrono de Repos Intelligent</p>
                     <p class="text-secondary">✅ Données sauvegardées localement</p>
                     <p class="text-secondary">✅ Hors ligne après installation</p>
                     <p class="text-secondary">✅ 100% Gratuit & Open Source</p>
@@ -252,10 +315,149 @@
         </div>
     </template>
 
-    <script src="./js/exercises.js"></script>
-    <script src="./js/data.js"></script>
-    <script src="./js/svg-animations.js"></script>
-    <script src="./js/ui.js"></script>
-    <script src="./js/app.js"></script>
+    <!-- MANUAL SCREEN -->
+    <template id="screen-manual">
+        <div class="screen">
+            <header class="header with-back">
+                <button class="btn-back" id="btn-back-manual">←</button>
+                <h2>📖 Manuel d'Utilisation</h2>
+            </header>
+
+            <div class="settings-container">
+                <div class="card">
+                    <h3>🚀 Démarrage Rapide</h3>
+                    <ol style="padding-left: 20px; line-height: 1.8;">
+                        <li>Ouvrez l'application MyFitTracker</li>
+                        <li>Cliquez sur "Changer de Programme" pour choisir votre plan</li>
+                        <li>Appuyez sur "Démarrer Session" pour commencer</li>
+                        <li>Suivez chaque exercice avec le chrono intégré</li>
+                        <li>Validez vos séries et progressez!</li>
+                    </ol>
+                </div>
+
+                <div class="card">
+                    <h3>📱 Écran d'Accueil</h3>
+                    <p><strong>📅 Semaine:</strong> Affiche votre semaine d'entraînement actuelle</p>
+                    <p><strong>🏋️ Sessions:</strong> Nombre total de séances complétées</p>
+                    <p><strong>⚖️ Poids:</strong> Votre poids corporel actuel</p>
+                    <div style="margin-top: 10px; padding: 10px; background: var(--surface-light); border-radius: 8px;">
+                        <p class="text-secondary">💡 Les boutons principaux vous permettent de:</p>
+                        <p>• Démarrer une session d'entraînement</p>
+                        <p>• Changer de programme</p>
+                        <p>• Enregistrer votre poids</p>
+                        <p>• Voir vos statistiques</p>
+                        <p>• Accéder aux paramètres</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>🏋️ Sessions d'Entraînement</h3>
+                    <p><strong>Pendant une session:</strong></p>
+                    <ul style="padding-left: 20px; line-height: 1.8;">
+                        <li>Chaque exercice affiche une image de démonstration</li>
+                        <li>Entrez vos poids et répétitions pour chaque série</li>
+                        <li>Utilisez le chrono pour vos pauses entre séries</li>
+                        <li>Le bouton "✅ Valider Série" enregistre vos données</li>
+                        <li>Passez à l'exercice suivant quand vous êtes prêt</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>⏱️ Chrono de Repos</h3>
+                    <p><strong>Mode Automatique:</strong></p>
+                    <p class="text-secondary">Si activé, le chrono se lance automatiquement avec la durée recommandée après chaque série.</p>
+                    <p><strong>Mode Manuel:</strong></p>
+                    <p class="text-secondary">Démarrez, pausez et réinitialisez le chrono comme vous le souhaitez pour adapter le repos à votre rythme.</p>
+                    <p style="margin-top: 10px;"><strong>⏲️ Durée Personnalisable:</strong></p>
+                    <p class="text-secondary">Modifiez la durée de repos par défaut dans les paramètres (30-300 secondes).</p>
+                </div>
+
+                <div class="card">
+                    <h3>📊 Statistiques & Suivi</h3>
+                    <p><strong>Visualisez votre progression:</strong></p>
+                    <ul style="padding-left: 20px; line-height: 1.8;">
+                        <li>Historique complet de toutes vos sessions</li>
+                        <li>Graphiques de progression par exercice</li>
+                        <li>Comparaison poids/répétitions au fil du temps</li>
+                        <li>Données de tous vos entraînements</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>⚙️ Paramètres</h3>
+                    <p><strong>🎨 Apparence:</strong></p>
+                    <p class="text-secondary">Activez/désactivez le mode sombre selon votre préférence</p>
+                    
+                    <p style="margin-top: 15px;"><strong>🔊 Audio & Notifications:</strong></p>
+                    <p class="text-secondary">Sons pour les alertes, notifications pour rappels</p>
+                    
+                    <p style="margin-top: 15px;"><strong>⏱️ Repos Entre Séries:</strong></p>
+                    <p class="text-secondary">Chrono auto et démarrage automatique configurable</p>
+                    
+                    <p style="margin-top: 15px;"><strong>💾 Données:</strong></p>
+                    <p class="text-secondary">Exportez vos données en JSON ou videz tout l'historique</p>
+                </div>
+
+                <div class="card">
+                    <h3>📥 Sauvegarde & Export</h3>
+                    <p><strong>Automatique:</strong></p>
+                    <p class="text-secondary">Sauvegarde quotidienne à minuit</p>
+                    
+                    <p style="margin-top: 15px;"><strong>Manuel:</strong></p>
+                    <p class="text-secondary">Exportez vos données en JSON pour archive personnelle</p>
+                    
+                    <p style="margin-top: 15px;"><strong>⚠️ Stockage Local:</strong></p>
+                    <p class="text-secondary">Toutes vos données sont stockées localement sur votre appareil, jamais partagées</p>
+                </div>
+
+                <div class="card">
+                    <h3>8️⃣ Les 8 Programmes Disponibles</h3>
+                    <ol style="padding-left: 20px; line-height: 1.8; font-size: 0.95em;">
+                        <li><strong>Entraînement Complet (20 min)</strong> - 6 exercices full-body</li>
+                        <li><strong>Haut du Corps (25 min)</strong> - Poitrine, dos, épaules, bras</li>
+                        <li><strong>Bas du Corps (22 min)</strong> - Jambes et fesses</li>
+                        <li><strong>Bras & Épaules (20 min)</strong> - Biceps, triceps, épaules</li>
+                        <li><strong>Core & Abdominaux (18 min)</strong> - Sangle abdominale</li>
+                        <li><strong>Jambes & Fesses (24 min)</strong> - Intensif bas du corps</li>
+                        <li><strong>Full Body Cardio (25 min)</strong> - Entraînement cardio-muscu</li>
+                        <li><strong>Dos & Biceps (23 min)</strong> - Spécialisé dos et bras</li>
+                    </ol>
+                </div>
+
+                <div class="card">
+                    <h3>💡 Conseils d'Utilisation</h3>
+                    <ul style="padding-left: 20px; line-height: 1.8;">
+                        <li>✅ Réalisez 2-3 minutes d'échauffement avant chaque session</li>
+                        <li>✅ Maintenez une bonne posture pendant tous les mouvements</li>
+                        <li>✅ Respirez régulièrement (expirez à l'effort)</li>
+                        <li>✅ Progressez graduellement en augmentant les poids</li>
+                        <li>✅ Enregistrez toujours vos performances</li>
+                        <li>✅ Sauvegarder régulièrement vos données</li>
+                        <li>✅ Reposez-vous bien entre les séances</li>
+                    </ul>
+                </div>
+
+                <div class="card" style="background: var(--surface-light); border-left: 4px solid var(--primary);">
+                    <h3>❓ Questions Fréquentes</h3>
+                    <p><strong>Q: Peut-on utiliser l'app hors ligne?</strong></p>
+                    <p class="text-secondary">R: Oui! Après installation, l'app fonctionne complètement hors ligne</p>
+                    
+                    <p style="margin-top: 15px;"><strong>Q: Mes données sont-elles en sécurité?</strong></p>
+                    <p class="text-secondary">R: Oui, 100% local. Aucun envoi de données à des serveurs</p>
+                    
+                    <p style="margin-top: 15px;"><strong>Q: Comment récupérer mes données?</strong></p>
+                    <p class="text-secondary">R: Utilisez l'export JSON dans les paramètres</p>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script src="js/exercises.js?v=2"></script>
+    <script src="js/programs-data.js?v=2"></script>
+    <script src="js/data.js?v=2"></script>
+    <script src="js/svg-animations.js?v=2"></script>
+    <script src="js/features.js?v=2"></script>
+    <script src="js/ui.js?v=2"></script>
+    <script src="js/app.js?v=2"></script>
 </body>
 </html>

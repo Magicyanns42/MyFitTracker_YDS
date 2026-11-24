@@ -8,7 +8,6 @@ class UI {
         this.timerInterval = null;
         this.timerSeconds = 0;
         this.setupEventListeners();
-        this.showScreen('home');
     }
 
     setupEventListeners() {
@@ -30,6 +29,17 @@ class UI {
             
             this.handleAction(action, target);
         });
+
+        // Handle checkbox/toggle changes
+        document.addEventListener('change', (e) => {
+            if (e.target.type === 'checkbox' && e.target.id) {
+                this.handleAction(e.target.id, e.target);
+            }
+            // Handle number inputs for settings
+            if (e.target.type === 'number' && e.target.id === 'input-rest-time') {
+                this.updateRestTime(e.target.value);
+            }
+        });
     }
 
     handleAction(action, target) {
@@ -42,6 +52,7 @@ class UI {
             'btn-weight': () => this.showScreen('weightEntry'),
             'btn-stats': () => this.showScreen('stats'),
             'btn-settings': () => this.showScreen('settings'),
+            'btn-manual': () => this.showScreen('manual'),
 
             // Navigation
             'btn-back-home': () => this.showScreen('home'),
@@ -50,11 +61,19 @@ class UI {
             'btn-back-weight': () => this.showScreen('home'),
             'btn-back-stats': () => this.showScreen('home'),
             'btn-back-settings': () => this.showScreen('home'),
+            'btn-back-manual': () => this.showScreen('home'),
 
-            // Session
+            // Session Timer
             'btn-timer-start': () => this.startTimer(),
             'btn-timer-pause': () => this.pauseTimer(),
             'btn-timer-reset': () => this.resetTimer(),
+            
+            // Exercise Timer
+            'btn-timer-start-ex': () => this.startTimer(),
+            'btn-timer-pause-ex': () => this.pauseTimer(),
+            'btn-timer-reset-ex': () => this.resetTimer(),
+            
+            // Session
             'btn-finish-session': () => this.finishSession(),
             'btn-abandon-session': () => { 
                 if (confirm('Abandonner la session?')) this.showScreen('home');
@@ -63,13 +82,29 @@ class UI {
             // Exercise
             'btn-add-set': () => this.addSet(),
             'btn-next-exercise': () => this.nextExercise(),
+            'btn-finish-session-exercise': () => this.finishSession(),
 
             // Weight
             'btn-save-weight': () => this.saveWeight(),
 
             // Settings
             'btn-export-data': () => this.exportData(),
-            'btn-clear-data': () => this.clearData()
+            'btn-clear-data': () => this.clearData(),
+            'btn-backup-now': () => this.backupNow(),
+            'btn-request-notification-perm': () => AudioNotifications.requestPermission(),
+            'btn-stop-rest': () => this.stopRest(),
+            'toggle-dark-mode': (el) => {
+                console.log('🔧 toggle-dark-mode handler called');
+                if (el) {
+                    console.log('  el.checked:', el.checked);
+                    this.toggleDarkMode(el.checked);
+                }
+            },
+            'toggle-audio': (el) => el && this.toggleAudio(el.checked),
+            'toggle-notifications': (el) => el && this.toggleNotifications(el.checked),
+            'toggle-smart-rest': (el) => el && this.toggleSmartRest(el.checked),
+            'toggle-rest-auto-start': (el) => el && this.toggleRestAutoStart(el.checked),
+            'input-rest-time': (el) => el && this.updateRestTime(el.value)
         };
 
         // Handle delete set buttons
@@ -98,7 +133,12 @@ class UI {
 
         if (handlers[action]) {
             console.log('✅ Handler executed for:', action);
-            handlers[action]();
+            // For toggle handlers, also pass target
+            if (action.startsWith('toggle-') || action === 'input-rest-time') {
+                handlers[action](target);
+            } else {
+                handlers[action]();
+            }
         } else {
             console.warn('⚠️ No handler found for:', action);
         }
@@ -117,7 +157,8 @@ class UI {
             'exerciseDetail': () => this.renderExerciseDetail(),
             'weightEntry': () => this.renderWeightEntry(),
             'stats': () => this.renderStats(),
-            'settings': () => this.renderSettings()
+            'settings': () => this.renderSettings(),
+            'manual': () => this.renderManual()
         };
 
         if (screenMap[screenName]) {
@@ -128,9 +169,9 @@ class UI {
     // HOME SCREEN
     renderHome() {
         const template = document.getElementById('screen-home').cloneNode(true).content;
-        const program = db.getCurrentProgram();
-        const stats = db.getStats();
-        const latestWeight = db.getLatestWeight();
+        const program = window.db.getCurrentProgram();
+        const stats = window.db.getStats();
+        const latestWeight = window.db.getLatestWeight();
 
         template.getElementById('stat-week').textContent = program ? `1/${program.duration}` : '-';
         template.getElementById('stat-sessions').textContent = stats.totalSessions;
@@ -144,7 +185,7 @@ class UI {
     renderSelectProgram() {
         const template = document.getElementById('screen-select-program').cloneNode(true).content;
         const programsList = template.getElementById('programs-list');
-        const programs = db.getPrograms();
+        const programs = window.db.getPrograms();
 
         console.log('📚 Rendering programs:', programs.length, 'programs');
 
@@ -173,14 +214,14 @@ class UI {
 
     selectProgram(programId) {
         console.log('📋 selectProgram called with ID:', programId);
-        const programs = db.getPrograms();
+        const programs = window.db.getPrograms();
         console.log('📚 Available programs:', programs.map(p => ({ id: p.id, name: p.name })));
         
         const program = programs.find(p => p.id === programId);
         console.log('🔍 Found program:', program);
         
         if (program) {
-            db.setCurrentProgram(program);
+            window.db.setCurrentProgram(program);
             console.log('✅ Program set:', program.name);
             this.showScreen('home');
         } else {
@@ -191,43 +232,51 @@ class UI {
     // ACTIVE SESSION
     renderActiveSession() {
         const template = document.getElementById('screen-active-session').cloneNode(true).content;
-        const program = db.getCurrentProgram();
         
-        console.log('📋 Current program:', program);
-        
-        if (!program) {
-            console.error('❌ No program selected!');
-            alert('Veuillez sélectionner un programme');
-            this.showScreen('selectProgram');
-            return;
+        // Only initialize session if it doesn't exist yet
+        if (!this.currentSession) {
+            const program = window.db.getCurrentProgram();
+            
+            console.log('📋 Current program:', program);
+            
+            if (!program) {
+                console.error('❌ No program selected!');
+                alert('Veuillez sélectionner un programme');
+                this.showScreen('selectProgram');
+                return;
+            }
+
+            const week = program.cycles[0];
+            const day = week.days[0];
+            
+            console.log('📅 Starting session:', { week: week.week, day: day.name, exercises: day.exercises });
+            
+            this.currentSession = {
+                programId: program.id,
+                week: 1,
+                day: 1,
+                dayName: day.name,
+                exercises: day.exercises,
+                startTime: Date.now(),
+                sets: []
+            };
         }
 
-        const week = program.cycles[0];
-        const day = week.days[0];
-        
-        console.log('📅 Starting session:', { week: week.week, day: day.name, exercises: day.exercises });
-        
-        this.currentSession = {
-            programId: program.id,
-            week: 1,
-            day: 1,
-            dayName: day.name,
-            exercises: day.exercises,
-            startTime: Date.now(),
-            sets: []
-        };
-
+        const day = window.db.getCurrentProgram().cycles[0].days[0];
         template.getElementById('session-title').textContent = day.name;
         const exercisesList = template.getElementById('exercises-list');
 
         day.exercises.forEach((exId) => {
-            const ex = db.getExerciseById(exId);
+            const ex = window.db.getExerciseById(exId);
             console.log(`💪 Adding exercise:`, { id: exId, name: ex ? ex.name : '???' });
             
             if (!ex) {
                 console.error(`❌ Exercise ${exId} not found!`);
                 return;
             }
+            
+            // Count sets for this exercise in the current session
+            const exerciseSets = this.currentSession.sets.filter(s => s.exerciseId === exId).length;
             
             const item = document.createElement('div');
             item.className = 'exercise-item';
@@ -238,7 +287,7 @@ class UI {
                     <h3>${ex.name}</h3>
                     <p>${ex.sets} séries x ${ex.reps} reps</p>
                 </div>
-                <div class="exercise-sets-count">0/${ex.sets}</div>
+                <div class="exercise-sets-count">${exerciseSets}/${ex.sets}</div>
             `;
             exercisesList.appendChild(item);
         });
@@ -258,7 +307,7 @@ class UI {
             return;
         }
         
-        const exercise = db.getExerciseById(exerciseId);
+        const exercise = window.db.getExerciseById(exerciseId);
         console.log('🔍 Found exercise:', exercise);
         
         if (exercise) {
@@ -283,9 +332,13 @@ class UI {
         template.getElementById('exercise-tempo').textContent = ex.tempo;
         template.getElementById('exercise-target').textContent = `${ex.targetMuscles} • Difficulté: ${ex.difficulty}`;
 
-        // Animation SVG
+        // Animation SVG or Image
         const animation = template.getElementById('exercise-animation');
-        animation.innerHTML = SVGAnimations.getAnimationForExercise(ex.id);
+        if (ex.image) {
+            animation.innerHTML = `<img src="${ex.image}" alt="${ex.name}" style="width: 100%; height: 300px; object-fit: cover; border-radius: 8px;">`;
+        } else {
+            animation.innerHTML = SVGAnimations.getAnimationForExercise(ex.id);
+        }
 
         // Load sets
         const setsHistory = template.getElementById('sets-history');
@@ -306,6 +359,22 @@ class UI {
             setsHistory.appendChild(item);
         });
 
+        // Check if this is the last exercise
+        const currentIndex = this.currentSession.exercises.indexOf(this.currentExercise.id);
+        const isLastExercise = currentIndex === this.currentSession.exercises.length - 1;
+        
+        // Update button text based on position
+        const nextBtn = template.getElementById('btn-next-exercise');
+        if (isLastExercise) {
+            nextBtn.textContent = '✓ Terminer la Session';
+            nextBtn.className = 'btn btn-success btn-lg';
+            nextBtn.id = 'btn-finish-session-exercise';
+        } else {
+            nextBtn.textContent = 'Exercice Suivant →';
+            nextBtn.className = 'btn btn-secondary btn-lg';
+            nextBtn.id = 'btn-next-exercise';
+        }
+
         this.app.innerHTML = '';
         this.app.appendChild(template);
     }
@@ -315,14 +384,26 @@ class UI {
     }
 
     addSet() {
-        if (!this.currentExercise || !this.currentSession) return;
+        if (!this.currentExercise || !this.currentSession) {
+            console.error('❌ No exercise or session', this.currentExercise, this.currentSession);
+            return;
+        }
 
-        const reps = parseInt(document.getElementById('input-reps').value);
-        const weight = parseFloat(document.getElementById('input-weight').value);
-        const rpe = parseInt(document.getElementById('input-rpe').value);
+        const repsVal = document.getElementById('input-reps').value;
+        const weightVal = document.getElementById('input-weight').value;
+        const rpeVal = document.getElementById('input-rpe').value;
+
+        console.log('📝 Set values:', {repsVal, weightVal, rpeVal});
+
+        const reps = parseInt(repsVal);
+        const weight = parseFloat(weightVal);
+        const rpe = parseInt(rpeVal);
+
+        console.log('📝 Parsed:', {reps, weight, rpe});
 
         if (!reps || isNaN(weight) || !rpe) {
             alert('Remplissez tous les champs correctement');
+            console.error('❌ Invalid values:', {reps, weight, rpe});
             return;
         }
 
@@ -334,11 +415,34 @@ class UI {
             timestamp: Date.now()
         });
 
+        console.log('✅ Set added! Total sets:', this.currentSession.sets.length);
+
+        // Play success beep
+        window.audioNotifications.successBeep();
+
         document.getElementById('input-reps').value = '';
         document.getElementById('input-weight').value = '';
         document.getElementById('input-rpe').value = '';
 
         this.renderExerciseDetail();
+
+        // Auto-start rest timer if enabled AFTER rendering
+        const restTime = parseInt(localStorage.getItem('defaultRestTime') || '90');
+        if (window.smartRestTimer.enabled) {
+            setTimeout(() => {
+                const restCard = document.getElementById('rest-timer-card');
+                if (restCard) {
+                    restCard.style.display = 'block';
+                    window.smartRestTimer.startRest(restTime, () => {
+                        const restCard2 = document.getElementById('rest-timer-card');
+                        if (restCard2) restCard2.style.display = 'none';
+                        window.audioNotifications.notify('💪 Prêt pour la prochaine série!', {
+                            tag: 'next-set'
+                        });
+                    });
+                }
+            }, 150);
+        }
     }
 
     deleteSet(index) {
@@ -354,10 +458,8 @@ class UI {
         const currentIndex = this.currentSession.exercises.indexOf(this.currentExercise.id);
         if (currentIndex < this.currentSession.exercises.length - 1) {
             const nextExId = this.currentSession.exercises[currentIndex + 1];
-            this.currentExercise = db.getExerciseById(nextExId);
+            this.currentExercise = window.db.getExerciseById(nextExId);
             this.renderExerciseDetail();
-        } else {
-            alert('Dernier exercice atteint! Terminez la session.');
         }
     }
 
@@ -369,13 +471,23 @@ class UI {
 
         const duration = Math.floor((Date.now() - this.currentSession.startTime) / 1000);
         
-        db.addSession({
+        window.db.addSession({
             ...this.currentSession,
             duration,
             completedSets: this.currentSession.sets.length
         });
 
         const minutes = Math.floor(duration / 60);
+        
+        // Play success sound
+        window.audioNotifications.successBeep();
+        
+        // Send notification
+        window.audioNotifications.notifySessionEnd(
+            this.currentSession.programName,
+            `${minutes}m - ${this.currentSession.sets.length} séries`
+        );
+
         alert(`✅ Session terminée!\n${this.currentSession.sets.length} séries enregistrées\nDurée: ${minutes}m`);
         this.currentSession = null;
         this.showScreen('home');
@@ -386,7 +498,7 @@ class UI {
         const template = document.getElementById('screen-weight-entry').cloneNode(true).content;
         const history = template.getElementById('weight-history');
 
-        const weights = db.getWeights();
+        const weights = window.db.getWeights();
         weights.slice().reverse().forEach(w => {
             const item = document.createElement('div');
             item.className = 'weight-item';
@@ -408,7 +520,7 @@ class UI {
             return;
         }
 
-        db.addWeight(weight);
+        window.db.addWeight(weight);
         alert(`✅ Poids enregistré: ${weight} kg`);
         this.showScreen('home');
     }
@@ -416,14 +528,14 @@ class UI {
     // STATISTICS
     renderStats() {
         const template = document.getElementById('screen-stats').cloneNode(true).content;
-        const stats = db.getStats();
+        const stats = window.db.getStats();
 
         template.getElementById('stats-total-sessions').textContent = stats.totalSessions;
         template.getElementById('stats-total-time').textContent = `${Math.floor(stats.totalTime / 3600)}h`;
         template.getElementById('stats-avg-weight').textContent = stats.avgWeight ? `${stats.avgWeight} kg` : '-';
 
         // Weight chart
-        const weights = db.getWeights();
+        const weights = window.db.getWeights();
         const chartContainer = template.getElementById('weight-chart');
         
         if (weights.length > 0) {
@@ -445,7 +557,7 @@ class UI {
 
         // Top exercises
         const exercisesStats = template.getElementById('exercises-stats');
-        const exStats = db.getExerciseStats();
+        const exStats = window.db.getExerciseStats();
 
         Object.entries(exStats)
             .sort((a, b) => b[1] - a[1])
@@ -465,7 +577,7 @@ class UI {
         const template = document.getElementById('screen-settings').cloneNode(true).content;
         const history = template.getElementById('sessions-history');
 
-        const sessions = db.getRecentSessions(10);
+        const sessions = window.db.getRecentSessions(10);
         sessions.forEach(session => {
             const date = new Date(session.date).toLocaleDateString('fr-FR');
             const time = new Date(session.date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
@@ -483,11 +595,62 @@ class UI {
             history.appendChild(item);
         });
 
+        // Dark mode toggle
+        const darkToggle = template.getElementById('toggle-dark-mode');
+        if (darkToggle) {
+            const isDarkMode = localStorage.getItem('darkMode') === 'true';
+            darkToggle.checked = isDarkMode;
+        }
+
+        // Audio toggle
+        const audioToggle = template.getElementById('toggle-audio');
+        if (audioToggle) {
+            audioToggle.checked = localStorage.getItem('audioEnabled') !== 'false';
+        }
+
+        // Notifications toggle
+        const notifToggle = template.getElementById('toggle-notifications');
+        if (notifToggle) {
+            notifToggle.checked = localStorage.getItem('notificationsEnabled') !== 'false';
+        }
+
+        // Smart Rest toggle
+        const restToggle = template.getElementById('toggle-smart-rest');
+        if (restToggle) {
+            restToggle.checked = localStorage.getItem('smartRestEnabled') !== 'false';
+        }
+
+        // Rest Auto Start toggle
+        const restAutoToggle = template.getElementById('toggle-rest-auto-start');
+        if (restAutoToggle) {
+            restAutoToggle.checked = localStorage.getItem('restAutoStart') === 'true';
+        }
+
+        // Rest time input
+        const restTimeInput = template.getElementById('input-rest-time');
+        if (restTimeInput) {
+            restTimeInput.value = localStorage.getItem('defaultRestTime') || '90';
+        }
+
+        // Backup status
+        const backupStatus = template.getElementById('backup-status');
+        const lastBackup = localStorage.getItem('lastBackup');
+        if (lastBackup && backupStatus) {
+            const date = new Date(parseInt(lastBackup));
+            backupStatus.textContent = `✅ Dernière sauvegarde: ${date.toLocaleString('fr-FR')}`;
+        }
+
+        this.app.appendChild(template);
+    }
+
+    // MANUAL SCREEN
+    renderManual() {
+        const template = document.getElementById('screen-manual').cloneNode(true).content;
         this.app.appendChild(template);
     }
 
     exportData() {
-        const data = db.exportData();
+        const data = window.db.exportData();
         const json = JSON.stringify(data, null, 2);
         const blob = new Blob([json], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -502,7 +665,7 @@ class UI {
     clearData() {
         if (confirm('Êtes-vous sûr? Toutes les données seront effacées!')) {
             if (confirm('DERNIÈRE CONFIRMATION - Cette action est irréversible!')) {
-                db.clearAllData();
+                window.db.clearAllData();
                 alert('✅ Données effacées');
                 this.showScreen('home');
             }
@@ -533,15 +696,85 @@ class UI {
 
     updateTimerDisplay() {
         const display = document.getElementById('timer-display');
-        if (!display) return;
-
+        const displayEx = document.getElementById('timer-display-exercise');
+        
         const hours = Math.floor(this.timerSeconds / 3600);
         const minutes = Math.floor((this.timerSeconds % 3600) / 60);
         const seconds = this.timerSeconds % 60;
+        const timeString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        
+        if (display) display.textContent = timeString;
+        if (displayEx) displayEx.textContent = timeString;
+    }
 
-        display.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    // Dark Mode Toggle
+    toggleDarkMode(enabled) {
+        console.log('🌙 toggleDarkMode:', enabled);
+        
+        if (enabled) {
+            document.documentElement.classList.add('dark-mode');
+        } else {
+            document.documentElement.classList.remove('dark-mode');
+        }
+        
+        localStorage.setItem('darkMode', enabled ? 'true' : 'false');
+        console.log('✅ Toggled. Dark mode now:', document.documentElement.classList.contains('dark-mode'));
+    }
+
+    // Backup Now
+    backupNow() {
+        this.exportData();
+        const now = Date.now();
+        localStorage.setItem('lastBackup', now.toString());
+        alert('✅ Sauvegarde créée!');
+        
+        // Update backup status
+        const backupStatus = document.getElementById('backup-status');
+        if (backupStatus) {
+            const date = new Date(now);
+            backupStatus.textContent = `✅ Dernière sauvegarde: ${date.toLocaleString('fr-FR')}`;
+        }
+    }
+
+    // Audio settings
+    toggleAudio(enabled) {
+        localStorage.setItem('audioEnabled', enabled ? 'true' : 'false');
+        window.audioNotifications.audioEnabled = enabled;
+        window.audioNotifications.beep();
+    }
+
+    toggleNotifications(enabled) {
+        localStorage.setItem('notificationsEnabled', enabled ? 'true' : 'false');
+        window.audioNotifications.notificationsEnabled = enabled;
+        if (enabled) {
+            window.audioNotifications.notify('✅ Notifications Activées!', {tag: 'settings'});
+        }
+    }
+
+    toggleSmartRest(enabled) {
+        localStorage.setItem('smartRestEnabled', enabled ? 'true' : 'false');
+        window.smartRestTimer.enabled = enabled;
+    }
+
+    toggleRestAutoStart(enabled) {
+        localStorage.setItem('restAutoStart', enabled ? 'true' : 'false');
+        window.smartRestTimer.autoStart = enabled;
+    }
+
+    updateRestTime(value) {
+        const seconds = Math.max(30, Math.min(300, parseInt(value) || 90));
+        localStorage.setItem('defaultRestTime', seconds.toString());
+        const input = document.getElementById('input-rest-time');
+        if (input) input.value = seconds;
+    }
+
+    stopRest() {
+        window.smartRestTimer.stop();
+        const restCard = document.getElementById('rest-timer-card');
+        if (restCard) restCard.style.display = 'none';
     }
 }
 
 // Don't initialize here - App.js handles it
+
 

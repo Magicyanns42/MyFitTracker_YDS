@@ -1,6 +1,7 @@
 // Database Management with LocalStorage
 class Database {
     constructor() {
+        this.migrateData();
         this.programs = this.loadPrograms();
         this.sessions = this.loadSessions();
         this.weights = this.loadWeights();
@@ -8,14 +9,37 @@ class Database {
         this.initializeData();
     }
 
+    migrateData() {
+        const dbVersion = localStorage.getItem('dbVersion');
+        const currentVersion = '1.1.0';
+        
+        if (dbVersion !== currentVersion) {
+            console.log(`📦 Database migration: ${dbVersion || 'old'} → ${currentVersion}`);
+            localStorage.setItem('dbVersion', currentVersion);
+        }
+    }
+
     initializeData() {
+        if (typeof PROGRAMS === 'undefined') {
+            console.error('❌ PROGRAMS not defined! Check if programs-data.js loaded.');
+            return;
+        }
+        
+        // If no programs in localStorage, load from PROGRAMS
         if (this.programs.length === 0) {
             this.programs = PROGRAMS;
             this.savePrograms();
+            console.log(`✅ Loaded ${this.programs.length} programs from PROGRAMS array`);
+            console.log('Programs:');
+            this.programs.forEach(p => console.log(`   ${p.id}. ${p.name}`));
+            
             if (!this.currentProgram) {
                 this.currentProgram = PROGRAMS[0];
                 this.saveCurrentProgram();
+                console.log(`📌 Set default program: ${this.currentProgram.name}`);
             }
+        } else {
+            console.log(`✅ Database already initialized with ${this.programs.length} programs`);
         }
     }
 
