@@ -38,7 +38,7 @@ const PROGRAMS = [
             week: 1,
             days: [{
                 name: "Entraînement complet du corps",
-                exercises: [100, 101, 102, 103, 104, 105]
+                exercises: [300, 301, 302, 303, 304]
             }]
         }]
     },
@@ -50,7 +50,7 @@ const PROGRAMS = [
             week: 1,
             days: [{
                 name: "Haut du corps",
-                exercises: [106, 107, 108, 109, 110, 111]
+                exercises: [310, 311, 312, 313, 314]
             }]
         }]
     },
@@ -62,7 +62,7 @@ const PROGRAMS = [
             week: 1,
             days: [{
                 name: "Bas du corps",
-                exercises: [112, 113, 114, 115, 116]
+                exercises: [320, 321, 322, 323, 324]
             }]
         }]
     },
@@ -74,7 +74,7 @@ const PROGRAMS = [
             week: 1,
             days: [{
                 name: "Bras et épaules",
-                exercises: [117, 118, 119, 120, 121, 122]
+                exercises: [330, 331, 332, 333, 334]
             }]
         }]
     },
@@ -86,7 +86,7 @@ const PROGRAMS = [
             week: 1,
             days: [{
                 name: "Core et abdominaux",
-                exercises: [123, 124, 125, 126, 127]
+                exercises: [340, 341, 342, 343, 344]
             }]
         }]
     },
@@ -98,7 +98,7 @@ const PROGRAMS = [
             week: 1,
             days: [{
                 name: "Jambes et fesses",
-                exercises: [128, 129, 130, 131, 132]
+                exercises: [350, 351, 352, 353, 354]
             }]
         }]
     },
@@ -110,7 +110,7 @@ const PROGRAMS = [
             week: 1,
             days: [{
                 name: "Full body cardio-muscu",
-                exercises: [133, 134, 135, 136, 137]
+                exercises: [360, 361, 362, 363, 364]
             }]
         }]
     },
@@ -122,7 +122,7 @@ const PROGRAMS = [
             week: 1,
             days: [{
                 name: "Dos et biceps",
-                exercises: [138, 139, 140, 141, 142]
+                exercises: [370, 371, 372, 373, 374]
             }]
         }]
     }

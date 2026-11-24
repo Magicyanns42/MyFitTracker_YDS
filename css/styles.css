@@ -71,6 +71,14 @@ html, body {
     display: flex;
     flex-direction: column;
     padding-bottom: 20px;
+    overflow-x: hidden;
+}
+
+@media (max-width: 480px) {
+    .screen {
+        padding-bottom: 16px;
+        max-width: 100%;
+    }
 }
 
 /* Header */
@@ -146,11 +154,26 @@ html, body {
     box-shadow: var(--shadow-lg);
 }
 
+@media (max-width: 480px) {
+    .card {
+        margin: 10px 12px;
+        padding: 16px;
+        border-radius: 12px;
+    }
+}
+
 .card-container {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 10px;
     padding: 16px;
+}
+
+@media (max-width: 480px) {
+    .card-container {
+        padding: 12px;
+        gap: 8px;
+    }
 }
 
 .stat-card {
@@ -387,6 +410,12 @@ html, body {
     margin: 8px 16px;
 }
 
+@media (max-width: 480px) {
+    .exercise-container .card {
+        margin: 8px 10px;
+    }
+}
+
 .exercise-container .card h3 {
     font-size: 14px;
     text-transform: uppercase;
@@ -404,12 +433,23 @@ html, body {
 /* Exercise Visual */
 .exercise-visual {
     background: linear-gradient(135deg, var(--surface-light) 0%, var(--surface-light) 100%);
-    min-height: 300px;
+    min-height: 250px;
+    max-height: 450px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 16px 16px 8px;
     border: 2px dashed var(--border);
+    padding: 12px;
+    overflow: hidden;
+}
+
+@media (max-width: 480px) {
+    .exercise-visual {
+        min-height: 220px;
+        max-height: 350px;
+        margin: 12px 8px 8px;
+    }
 }
 
 .exercise-animation {
@@ -418,11 +458,21 @@ html, body {
     display: flex;
     align-items: center;
     justify-content: center;
+    min-height: 220px;
+}
+
+.exercise-animation img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    display: block;
 }
 
 .exercise-animation svg {
     max-width: 100%;
-    max-height: 280px;
+    max-height: 400px;
 }
 
 /* Tempo Info */
